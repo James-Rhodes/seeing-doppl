@@ -1,0 +1,18 @@
+[package]
+name = "macroquad_template"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macroquad = "0.4.5"
+mqanim = { git = "https://github.com/James-Rhodes/mqanim" }
+
+[profile.web-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
