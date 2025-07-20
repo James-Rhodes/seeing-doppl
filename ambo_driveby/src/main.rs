@@ -1,13 +1,17 @@
 use std::f32::consts::PI;
 
 use macroquad::prelude::*;
-use mqanim::{plot::Graph, Animation};
+use mqanim::{
+    plot::{AxisStyle, Graph, GraphStyle},
+    Animation,
+};
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
+
 fn window_conf() -> Conf {
     Conf {
-        window_title: "Template".to_owned(),
+        window_title: "Ambo Driveby".to_owned(),
         sample_count: 4,
         window_width: WINDOW_WIDTH as i32,
         window_height: WINDOW_HEIGHT as i32,
@@ -47,10 +51,15 @@ struct Ambulance {
     num_sounds_to_emit: usize,
     emitted_values: Vec<Vec2>,
     first_emit_time: Option<f32>,
+    texture: Texture2D,
 }
 
 impl Ambulance {
     fn new(pos: Vec2, size: Vec2, speed: f32, sound_rate: f32, num_sounds_to_emit: usize) -> Self {
+        let ambulance_texture: Texture2D = Texture2D::from_file_with_format(
+            include_bytes!("../assets/ambulance.png"),
+            Some(ImageFormat::Png),
+        );
         Self {
             pos,
             size,
@@ -59,6 +68,7 @@ impl Ambulance {
             num_sounds_to_emit,
             emitted_values: vec![],
             first_emit_time: None,
+            texture: ambulance_texture,
         }
     }
     fn update(&mut self, time: f32) -> Option<Sound> {
@@ -80,18 +90,25 @@ impl Ambulance {
     }
 
     fn draw(&self) {
-        draw_rectangle(
+        draw_texture_ex(
+            &self.texture,
             self.pos.x - self.size.x / 2.0,
             self.pos.y - self.size.y / 2.0,
-            self.size.x,
-            self.size.y,
-            RED,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(self.size),
+                source: None,
+                rotation: 0.,
+                flip_x: true,
+                flip_y: true,
+                pivot: None,
+            },
         );
     }
 }
 
 const EAR_POS: Vec2 = Vec2::new(0.0, -130.0);
-const EAR_SIZE: Vec2 = Vec2::new(50.0, 100.0);
+const EAR_SIZE: Vec2 = Vec2::new(30.0, 60.0);
 
 struct Ear {
     pos: Vec2,
@@ -99,26 +116,39 @@ struct Ear {
     plot_vals: Vec<Vec2>,
     ear_detect_radius: f32,
     first_detect_time: Option<f32>,
+    texture: Texture2D,
 }
 
 impl Ear {
     fn new(pos: Vec2, size: Vec2, ear_detect_radius: f32) -> Self {
+        let ear_texture: Texture2D = Texture2D::from_file_with_format(
+            include_bytes!("../assets/ear.png"),
+            Some(ImageFormat::Png),
+        );
         Ear {
             pos,
             size,
             plot_vals: vec![],
             ear_detect_radius,
             first_detect_time: None,
+            texture: ear_texture,
         }
     }
 
     fn draw(&self) {
-        draw_rectangle(
+        draw_texture_ex(
+            &self.texture,
             self.pos.x - self.size.x / 2.0,
             self.pos.y - self.size.y / 2.0,
-            self.size.x,
-            self.size.y,
-            BLUE,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(self.size),
+                source: None,
+                rotation: 0.,
+                flip_x: true,
+                flip_y: true,
+                pivot: None,
+            },
         );
     }
 }
@@ -177,7 +207,7 @@ impl State {
         let ambo = Ambulance::new(
             // Vec2::new(-WINDOW_WIDTH / 2., 100.),
             Vec2::new(-WINDOW_WIDTH / 2., EAR_POS.y),
-            Vec2::new(100., 50.),
+            Vec2::new(150., 75.),
             50.0,
             50.0,
             NUM_SOUNDS,
@@ -199,27 +229,35 @@ impl State {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    // TODO: Make the plots have green at the top and red at the bottom to signify the value
     // TODO: Replace squares with assets (ambo and person)
-    // TODO: Make the plots nicer (remove arrows etc.)
     let mut animation = Animation::new(WINDOW_WIDTH, WINDOW_HEIGHT, None);
     animation.enable_fxaa();
 
     let mut state = State::new();
 
-    let mut loop_timer = Timer::new(state.time, 30.0);
+    let mut loop_timer = Timer::new(state.time, 20.0);
 
-    let graph_rx = Graph::new(
-        Vec2::new(150., 50.),
-        Vec2::new(200.0, 200.0),
-        0.0..12.6 as f32,
-        -1.0..1.0 as f32,
+    let graph_size = Vec2::new(200., 200.);
+    let rx_graph_pos = Vec2::new(150., 50.);
+    let graph_rx = Graph::new(rx_graph_pos, graph_size, 0.0..12.6 as f32, -1.1..1.1 as f32).style(
+        GraphStyle {
+            y_style: AxisStyle {
+                end_point_style: mqanim::plot::GraphEndPointStyle::Nothing,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
     );
-    let graph_tx = Graph::new(
-        Vec2::new(-150., 50.),
-        Vec2::new(200.0, 200.0),
-        0.0..12.6 as f32,
-        -1.0..1.0 as f32,
+
+    let tx_graph_pos = Vec2::new(-150., 50.);
+    let graph_tx = Graph::new(tx_graph_pos, graph_size, 0.0..12.6 as f32, -1.0..1.0 as f32).style(
+        GraphStyle {
+            y_style: AxisStyle {
+                end_point_style: mqanim::plot::GraphEndPointStyle::Nothing,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
     );
 
     loop {
@@ -252,17 +290,42 @@ async fn main() {
 
         animation.set_camera();
 
-        state.ambo.draw();
         state.ear.draw();
         for sound in state.sounds.iter() {
             sound.draw();
         }
+        state.ambo.draw();
 
-        graph_rx.plot_line_vec(&state.ear.plot_vals, 5.0, WHITE);
+        let graph_indicator_radius = 10.;
+        draw_circle(
+            rx_graph_pos.x - graph_size.x / 2. - graph_indicator_radius - 5.,
+            rx_graph_pos.y + graph_size.y / 2.,
+            graph_indicator_radius,
+            GREEN,
+        );
+        draw_circle(
+            rx_graph_pos.x - graph_size.x / 2. - graph_indicator_radius - 5.,
+            rx_graph_pos.y - graph_size.y / 2.,
+            graph_indicator_radius,
+            RED,
+        );
         graph_rx.draw_axes();
+        graph_rx.plot_line_vec(&state.ear.plot_vals, 5.0, ORANGE);
 
-        graph_tx.plot_line_vec(&state.ambo.emitted_values, 5.0, WHITE);
+        draw_circle(
+            tx_graph_pos.x - graph_size.x / 2. - graph_indicator_radius - 5.,
+            tx_graph_pos.y + graph_size.y / 2.,
+            graph_indicator_radius,
+            GREEN,
+        );
+        draw_circle(
+            tx_graph_pos.x - graph_size.x / 2. - graph_indicator_radius - 5.,
+            tx_graph_pos.y - graph_size.y / 2.,
+            graph_indicator_radius,
+            RED,
+        );
         graph_tx.draw_axes();
+        graph_tx.plot_line_vec(&state.ambo.emitted_values, 5.0, ORANGE);
 
         animation.set_default_camera();
         animation.draw_frame();
