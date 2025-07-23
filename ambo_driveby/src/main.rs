@@ -250,7 +250,7 @@ async fn main() {
     );
 
     let tx_graph_pos = Vec2::new(-150., 50.);
-    let graph_tx = Graph::new(tx_graph_pos, graph_size, 0.0..12.6 as f32, -1.0..1.0 as f32).style(
+    let graph_tx = Graph::new(tx_graph_pos, graph_size, 0.0..12.6 as f32, -1.1..1.1 as f32).style(
         GraphStyle {
             y_style: AxisStyle {
                 end_point_style: mqanim::plot::GraphEndPointStyle::Nothing,
