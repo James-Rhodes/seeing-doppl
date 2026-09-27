@@ -213,7 +213,7 @@ dependencies = [
 [[package]]
 name = "mqanim"
 version = "0.1.0"
-source = "git+https://github.com/James-Rhodes/mqanim#1af303ebaddb63fff817b24b9b7bdb0571bdb5eb"
+source = "git+https://github.com/James-Rhodes/mqanim#190852955af368b504bf49a354dfbe6b7d0be90e"
 dependencies = [
  "macroquad",
 ]
