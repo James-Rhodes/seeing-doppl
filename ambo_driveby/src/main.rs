@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use macroquad::miniquad::conf::{Platform, WebGLVersion};
 use macroquad::prelude::*;
 use mqanim::{
     plot::{AxisStyle, Graph, GraphStyle},
@@ -15,6 +16,12 @@ fn window_conf() -> Conf {
         sample_count: 4,
         window_width: WINDOW_WIDTH as i32,
         window_height: WINDOW_HEIGHT as i32,
+        // WebGL1 has no multisampled render targets, which mqanim uses for
+        // anti-aliasing. WebGL2 is supported by every browser that matters.
+        platform: Platform {
+            webgl_version: WebGLVersion::WebGL2,
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
