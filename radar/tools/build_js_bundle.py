@@ -53,6 +53,14 @@ PATCHES = [
         "function load(e){var t=fetch(e);",
         "function start(e){var t=fetch(e);",
     ),
+    # The wrapper below puts the bundle in a function scope, so the bundle's
+    # `high_dpi` variable is no longer the global one. `setup_canvas_size` has
+    # to assign that variable instead of `window.high_dpi`, otherwise
+    # `dpi_scale()` always returns 1 and high-dpi rendering stays disabled.
+    (
+        "window.high_dpi=e",
+        "high_dpi=e",
+    ),
 ]
 
 HEADER = '''/*!
