@@ -16,6 +16,10 @@ fn window_conf() -> Conf {
         sample_count: 4,
         window_width: WINDOW_WIDTH as i32,
         window_height: WINDOW_HEIGHT as i32,
+        // Render at the display's physical resolution. Without this the
+        // canvas backing store is CSS-pixel sized and phones (with a
+        // devicePixelRatio of 2-3) upscale it, which blurs text in particular.
+        high_dpi: true,
         // WebGL1 has no multisampled render targets, which mqanim uses for
         // anti-aliasing. WebGL2 is supported by every browser that matters.
         platform: Platform {

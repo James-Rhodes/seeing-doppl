@@ -6,6 +6,7 @@ index_file := "<html lang='en'>
 
 <head>
     <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
     <title>" + crate_name + "</title>
     <style>
         html,
